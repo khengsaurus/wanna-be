@@ -6,15 +6,15 @@ NETWORK="nginx-app-network"
 
 printf "Stopping containers:\n"
 
-docker container ls -a | grep $APP | cut -c1-14 | xargs docker stop
+docker container ls -a | grep $APP | cut -c1-12 | xargs docker stop
 
 docker stop $MAIN
 
-sleep 2
+sleep 1
 
 printf "\nRemoving containers:\n"
 
-docker container ls -a | grep $APP | cut -c1-14 | xargs docker container rm
+docker container ls -a | grep $APP | cut -c1-12 | xargs docker container rm
 
 docker rm $MAIN
 
