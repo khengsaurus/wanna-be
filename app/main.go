@@ -6,30 +6,34 @@ import (
 	"os"
 
 	"github.com/go-chi/chi"
+	"github.com/joho/godotenv"
+	"github.com/khengsaurus/wanna-be/controller"
 )
 
 const port = 8080
 
 func main() {
+	envErr := godotenv.Load(".env")
+	if envErr != nil {
+		panic(envErr)
+	}
+
 	host, err := os.Hostname()
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	router := chi.NewRouter()
-	router.Get("/ping", test)
 	router.Get("/", home)
+	router.Route("/users", controller.UsersRouter)
+	router.Route("/expenses", controller.ExpensesRouter)
 
-	fmt.Printf("Running on %s:%v\n", host, port)
+	fmt.Printf("Listening on %s:%v\n", host, port)
+
 	err = http.ListenAndServe(fmt.Sprintf(":%v", port), router)
 	if err != nil {
 		panic(err)
 	}
-}
-
-func test(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Pong"))
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
@@ -38,6 +42,6 @@ func home(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		w.Write([]byte(fmt.Sprintf("Hello from %s", host)))
+		w.Write([]byte(fmt.Sprintf("Hello from %s:%d", host, port)))
 	}
 }

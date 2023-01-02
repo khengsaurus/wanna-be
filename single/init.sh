@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Start 2x nginx balancing 2x app each
+# Start 1xnginx + 1xapp
 
 APP="nginx-app"
 MAIN="nginx-main"
@@ -14,27 +14,20 @@ fi
 # Create network
 docker network create $NETWORK
 
-# Start 3 instances in detached mode
-function _run(){
-  docker run \
-    --name $APP-$1 \
-    --hostname $APP-$1 \
-    --network $NETWORK \
-    -d \
-    $APP
-}
+docker run \
+  --name $APP \
+  --hostname $APP \
+  --network $NETWORK \
+  -d \
+  $APP
 
-_run 0
-_run 1
-_run 2
-_run 3
 
 # Run nginx
 docker run \
   --name $MAIN \
   --hostname $MAIN \
   --network $NETWORK \
-  -p 8080-8081:8080-8081 \
-  -v /Users/kheng/git/wanna-be/lb2x2/nginx.conf:/etc/nginx/nginx.conf \
+  -p 8080:80 \
+  -v /Users/kheng/git/wanna-be/single/nginx.conf:/etc/nginx/nginx.conf \
   -d \
   nginx
