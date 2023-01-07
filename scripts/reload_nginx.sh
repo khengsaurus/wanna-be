@@ -1,10 +1,12 @@
 #!/bin/bash
 
-if [ "$#" -ne 2 ] || [ ! -f "$2" ]; then
-  echo "Error: please enter the container name/id, folllowed by the path to an nginx.conf"
+NGINX_MAIN_APP="nginx-main"
+
+if [[ ! -f "$(pwd)/$1/nginx.conf" ]]; then
+  echo "Please enter a dir in $(pwd) with an nginx.conf"
   exit 1
 fi
 
-docker cp $2 $1:/etc/nginx/nginx.conf
+docker cp $(pwd)/$1/nginx.conf $NGINX_MAIN_APP:/etc/nginx/nginx.conf
 
-docker exec $1 nginx -s reload
+docker exec $NGINX_MAIN_APP nginx -s reload

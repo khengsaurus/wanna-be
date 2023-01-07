@@ -44,3 +44,7 @@ docker exec nhttpd-0 ip route add 10.0.1.0/24 via 10.0.0.3
 docker exec nhttpd-0 bash -c "echo 'Hello from nhttpd-0' > htdocs/index.html"
 docker exec nhttpd-1 ip route add 10.0.0.0/24 via 10.0.1.3
 docker exec nhttpd-1 bash -c "echo 'Hello from nhttpd-1' > htdocs/index.html"
+
+# Test:
+# > docker exec -it nhttpd-0 bash
+# > curl curl 10.0.1.2

@@ -9,8 +9,7 @@ fi
 
 # -------------------------
 
-APP="nginx-app"
-MAIN="nginx-main"
+APP="nginx-go-app"
 NETWORK="nginx-app-network"
 
 # Build app image if not exists
@@ -18,18 +17,30 @@ if [[ "$(docker images -q $APP:latest 2> /dev/null)" == "" ]];
   then docker build app -t $APP
 fi
 
-# Create network
-docker network create $NETWORK
+# Create network if not exists
+if [[ ! $(docker network ls | grep $NETWORK) ]]; then
+    docker network create $NETWORK
+fi
 
 # Start instances in detached mode, in network
 function _run(){
-  docker run \
-    --name $APP-$1 \
-    --hostname $APP-$1 \
-    --network $NETWORK \
-    -e APP_ID=$APP-$1 \
-    -d \
-    $APP
+  APP_NAME=$APP-$1
+  if [[ $(docker container ps | grep $APP_NAME) ]]; then
+    return
+  elif [[ ! $(docker container ls -a | grep $APP_NAME) ]]; then
+    echo "Creating new container $APP_NAME"
+    docker run \
+      --name $APP_NAME \
+      --hostname $APP_NAME \
+      --network $NETWORK \
+      -e APP_ID=$APP_NAME \
+      -d \
+      $APP
+  elif [[ ! $(docker container ps | grep $APP_NAME) ]]; then
+    echo "Starting stopped container $APP_NAME"
+    docker container start $APP_NAME
+  fi
+
 }
 
 x=1
