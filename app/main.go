@@ -25,6 +25,7 @@ func main() {
 
 	router := chi.NewRouter()
 	router.Get("/", home)
+	router.Route("/admin", controller.AdminRouter)
 	router.Route("/users", controller.UsersRouter)
 	router.Route("/expenses", controller.ExpensesRouter)
 
