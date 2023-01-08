@@ -2,9 +2,27 @@ package util
 
 import (
 	"database/sql"
+	"encoding/json"
+	"fmt"
+	"net/http"
 
 	_ "github.com/lib/pq"
 )
+
+func RunQuery(db *sql.DB, query string) ([]interface{}, error) {
+	rows, err := db.Query(query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := ToJsonEncodable(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
 
 // https://stackoverflow.com/questions/42774467
 func ToJsonEncodable(rows *sql.Rows) ([]interface{}, error) {
@@ -77,4 +95,20 @@ func ToJsonEncodable(rows *sql.Rows) ([]interface{}, error) {
 	}
 
 	return finalRows, nil
+}
+
+func SendRes(w http.ResponseWriter, data []interface{}, err error) {
+	if err != nil {
+		fmt.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(data)
+
+	if err != nil {
+		fmt.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }

@@ -39,10 +39,10 @@ func main() {
 
 func home(w http.ResponseWriter, r *http.Request) {
 	appId := os.Getenv("APP_ID")
-	w.WriteHeader(http.StatusOK)
 	host, err := os.Hostname()
 	if err != nil {
 		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		w.Write([]byte(fmt.Sprintf("Hello from %s:%d, appId:%s", host, port, appId)))
 	}
