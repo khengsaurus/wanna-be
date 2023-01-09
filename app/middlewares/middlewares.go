@@ -1,8 +1,11 @@
 package middlewares
 
 import (
+	"context"
 	"net/http"
 	"strings"
+
+	"github.com/khengsaurus/wanna-be/consts"
 )
 
 // func EnableCors(h http.Handler) http.Handler {
@@ -14,6 +17,19 @@ import (
 
 // 	return c.Handler(h)
 // }
+
+func WithContext(key consts.ContextKey, client interface{}) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return WithContextFn(key, client, next)
+	}
+}
+
+func WithContextFn(key consts.ContextKey, client interface{}, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), key, client)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
 
 func SetHeader(header string, value string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

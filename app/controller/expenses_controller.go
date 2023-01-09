@@ -26,13 +26,11 @@ func GetTotalExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db := database.GetConnection()
-	if db == nil {
-		fmt.Print("Failed to create db connection")
-		w.WriteHeader(http.StatusInternalServerError)
+	conn, errorStatus := database.GetConnFromReqCtx(r)
+	if errorStatus != 200 {
+		w.WriteHeader(errorStatus)
 		return
 	}
-	defer db.Close()
 
 	sql := fmt.Sprintf(`
 	SELECT 
@@ -43,7 +41,7 @@ func GetTotalExpense(w http.ResponseWriter, r *http.Request) {
 		id,
 	)
 
-	data, err := util.RunQuery(db, sql)
+	data, err := conn.RunQuery(sql)
 	util.SendRes(w, data, err)
 }
 
@@ -51,25 +49,23 @@ func CreateExpense(w http.ResponseWriter, r *http.Request) {
 	var expense CreateExpenseReq
 	err := json.NewDecoder(r.Body).Decode(&expense)
 	if err != nil {
-		fmt.Printf("%v", err)
+		fmt.Printf("%v\n", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	db := database.GetConnection()
-	if db == nil {
-		fmt.Print("Failed to create db connection")
-		w.WriteHeader(http.StatusInternalServerError)
+	conn, errorStatus := database.GetConnFromReqCtx(r)
+	if errorStatus != 200 {
+		w.WriteHeader(errorStatus)
 		return
 	}
-	defer db.Close()
 
 	sql := fmt.Sprintf(
 		`INSERT INTO %s(userId, currency, amount, note, date) VALUES ($1, $2, $3, $4, $5)`,
 		consts.ExpensesTable,
 	)
 
-	_, err = db.Exec(sql, expense.UserId, expense.Currency, expense.Amount, expense.Note, time.Now())
+	_, err = conn.Exec(sql, expense.UserId, expense.Currency, expense.Amount, expense.Note, time.Now())
 
 	if err != nil {
 		fmt.Printf("Failed to write to table %s: %v", consts.ExpensesTable, err)

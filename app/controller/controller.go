@@ -31,15 +31,13 @@ var ExpensesRouter = func(router chi.Router) {
 
 func QueryHandler(query string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		db := database.GetConnection()
-		if db == nil {
-			fmt.Print("Failed to create db connection")
-			w.WriteHeader(http.StatusInternalServerError)
+		conn, errorStatus := database.GetConnFromReqCtx(r)
+		if errorStatus != http.StatusOK {
+			w.WriteHeader(errorStatus)
 			return
 		}
-		defer db.Close()
 
-		data, err := util.RunQuery(db, query)
+		data, err := conn.RunQuery(query)
 		util.SendRes(w, data, err)
 	}
 }
@@ -52,28 +50,31 @@ func GetByUser(table string) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		db := database.GetConnection()
-		if db == nil {
-			fmt.Print("Failed to create db connection")
-			w.WriteHeader(http.StatusInternalServerError)
+		conn, errorStatus := database.GetConnFromReqCtx(r)
+		if errorStatus != 200 {
+			w.WriteHeader(errorStatus)
 			return
 		}
-		defer db.Close()
 
-		data, err := util.RunQuery(db, fmt.Sprintf("SELECT * FROM %s WHERE userId = %s", table, id))
+		data, err := conn.RunQuery(fmt.Sprintf("SELECT * FROM %s WHERE userId = %s", table, id))
 		util.SendRes(w, data, err)
 	}
 }
 
 func Ping(w http.ResponseWriter, r *http.Request) {
 	status := "failed"
-	db := database.GetConnection()
-	if db != nil {
+	conn, errorStatus := database.GetConnFromReqCtx(r)
+	if errorStatus != 200 {
+		w.WriteHeader(errorStatus)
+		return
+	}
+
+	err := conn.Ping()
+	if err == nil {
 		status = "success"
 	} else {
-		fmt.Print("Failed to create db connection")
+		fmt.Println("Failed to ping db")
 	}
-	defer db.Close()
 
 	w.Write([]byte(fmt.Sprintf("Postgres db ping %s", status)))
 }
