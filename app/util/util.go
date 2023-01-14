@@ -9,21 +9,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func RunQuery(db *sql.DB, query string) ([]interface{}, error) {
-	rows, err := db.Query(query)
-
-	if err != nil {
-		return nil, err
-	}
-
-	data, err := ToJsonEncodable(rows)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
-}
-
 // https://stackoverflow.com/questions/42774467
 func ToJsonEncodable(rows *sql.Rows) ([]interface{}, error) {
 	columnTypes, err := rows.ColumnTypes()
@@ -97,9 +82,9 @@ func ToJsonEncodable(rows *sql.Rows) ([]interface{}, error) {
 	return finalRows, nil
 }
 
-func SendRes(w http.ResponseWriter, data []interface{}, err error) {
+func SendRes(w http.ResponseWriter, data any, err error) {
 	if err != nil {
-		fmt.Print(err)
+		fmt.Printf("%v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -108,7 +93,7 @@ func SendRes(w http.ResponseWriter, data []interface{}, err error) {
 	err = json.NewEncoder(w).Encode(data)
 
 	if err != nil {
-		fmt.Print(err)
+		fmt.Printf("%v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }

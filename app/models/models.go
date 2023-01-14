@@ -4,6 +4,11 @@ import (
 	"time"
 )
 
+type Address struct {
+	Host string
+	Port int
+}
+
 type User struct {
 	Id       int    `json:"id"`
 	Username string `json:"username"`

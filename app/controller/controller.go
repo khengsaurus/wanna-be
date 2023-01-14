@@ -13,33 +13,36 @@ import (
 
 var AdminRouter = func(router chi.Router) {
 	router.Use(middlewares.VerifyHeader("Authorization", "bearer token"))
-	router.Get("/", Ping)
+	router.Route("/pg", PgRouter)
+}
+
+var PgRouter = func(router chi.Router) {
+	router.Get("/", PingPg)
+	router.Get("/pool", GetPgConnPoolDetails)
 }
 
 var UsersRouter = func(router chi.Router) {
-	router.Get("/", QueryHandler(fmt.Sprintf("SELECT * FROM %s", consts.UsersTable)))
+	router.Get("/", PgQueryHandler(fmt.Sprintf("SELECT * FROM %s", consts.UsersTable)))
 	router.Get("/{userId}", GetByUser(consts.UsersTable))
 	router.Post("/", CreateUser)
 }
 
 var ExpensesRouter = func(router chi.Router) {
-	router.Get("/", QueryHandler(fmt.Sprintf("SELECT * FROM %s", consts.ExpensesTable)))
+	router.Get("/", PgQueryHandler(fmt.Sprintf("SELECT * FROM %s", consts.ExpensesTable)))
 	router.Get("/{userId}", GetByUser(consts.ExpensesTable))
 	router.Get("/{userId}/total", GetTotalExpense)
 	router.Post("/", CreateExpense)
 }
 
-func QueryHandler(query string) func(w http.ResponseWriter, r *http.Request) {
+func PgQueryHandler(query string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		db := database.GetConnection()
-		if db == nil {
-			fmt.Print("Failed to create db connection")
-			w.WriteHeader(http.StatusInternalServerError)
+		conn, errorStatus := database.GetPgConnFromReq(r)
+		if errorStatus != http.StatusOK {
+			w.WriteHeader(errorStatus)
 			return
 		}
-		defer db.Close()
 
-		data, err := util.RunQuery(db, query)
+		data, err := conn.RunQuery(query)
 		util.SendRes(w, data, err)
 	}
 }
@@ -52,28 +55,13 @@ func GetByUser(table string) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		db := database.GetConnection()
-		if db == nil {
-			fmt.Print("Failed to create db connection")
-			w.WriteHeader(http.StatusInternalServerError)
+		conn, errorStatus := database.GetPgConnFromReq(r)
+		if errorStatus != 200 {
+			w.WriteHeader(errorStatus)
 			return
 		}
-		defer db.Close()
 
-		data, err := util.RunQuery(db, fmt.Sprintf("SELECT * FROM %s WHERE userId = %s", table, id))
+		data, err := conn.RunQuery(fmt.Sprintf("SELECT * FROM %s WHERE userId = %s", table, id))
 		util.SendRes(w, data, err)
 	}
-}
-
-func Ping(w http.ResponseWriter, r *http.Request) {
-	status := "failed"
-	db := database.GetConnection()
-	if db != nil {
-		status = "success"
-	} else {
-		fmt.Print("Failed to create db connection")
-	}
-	defer db.Close()
-
-	w.Write([]byte(fmt.Sprintf("Postgres db ping %s", status)))
 }

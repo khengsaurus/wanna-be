@@ -4,10 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/joho/godotenv"
+	"github.com/khengsaurus/wanna-be/consts"
 	"github.com/khengsaurus/wanna-be/controller"
+	"github.com/khengsaurus/wanna-be/database"
+	"github.com/khengsaurus/wanna-be/middlewares"
 )
 
 const port = 8080
@@ -23,7 +27,12 @@ func main() {
 		fmt.Println(err)
 	}
 
+	var pgConnFactory database.PgConnectionFactory
+	pgConnPool := database.NewPgConnectionPool(pgConnFactory, 30*time.Second, time.Minute)
+
 	router := chi.NewRouter()
+	router.Use(middlewares.WithContext(consts.PgConnPoolKey, pgConnPool))
+
 	router.Get("/", home)
 	router.Route("/admin", controller.AdminRouter)
 	router.Route("/users", controller.UsersRouter)
