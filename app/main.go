@@ -53,6 +53,6 @@ func home(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
-		w.Write([]byte(fmt.Sprintf("Hello from %s:%d, appId:%s", host, port, appId)))
+		w.Write([]byte(fmt.Sprintf("Hello from %s, appId:%s", host, appId)))
 	}
 }

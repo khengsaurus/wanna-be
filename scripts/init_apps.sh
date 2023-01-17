@@ -9,7 +9,7 @@ fi
 
 # -------------------------
 
-APP="nginx-go-app"
+APP="expenses-app"
 NETWORK="nginx-app-network"
 
 # Build app image if not exists
@@ -27,7 +27,10 @@ function _run(){
   APP_NAME=$APP-$1
   if [[ $(docker container ps | grep $APP_NAME) ]]; then
     return
-  elif [[ ! $(docker container ls -a | grep $APP_NAME) ]]; then
+  elif [[ $(docker container ls -a | grep $APP_NAME) ]]; then
+    echo "Starting stopped container $APP_NAME"
+    docker container start $APP_NAME
+  else
     echo "Creating new container $APP_NAME"
     docker run \
       --name $APP_NAME \
@@ -36,11 +39,7 @@ function _run(){
       -e APP_ID=$APP_NAME \
       -d \
       $APP
-  elif [[ ! $(docker container ps | grep $APP_NAME) ]]; then
-    echo "Starting stopped container $APP_NAME"
-    docker container start $APP_NAME
   fi
-
 }
 
 x=1

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-APP="nginx-go-app"
+APP="expenses-app"
 NGINX_MAIN_APP="nginx-main"
 NETWORK="nginx-app-network"
 
