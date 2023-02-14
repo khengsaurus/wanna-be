@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# Create network if not exists
-# NETWORK="nginx-main-s-network"
-
-# if [[ ! $(docker network ls | grep $NETWORK) ]]; then
-#     docker network create $NETWORK
-# fi
-
 # 1 - path to Dockerfile
 # 2 - image name
 function build_img_if_not_exists(){
