@@ -13,7 +13,7 @@ APP="expenses-app"
 NETWORK="nginx-app-network"
 
 # Build app image if not exists
-if [[ "$(docker images -q $APP:latest 2> /dev/null)" == "" ]]; 
+if [[ "$(docker images -q $APP:1 2> /dev/null)" == "" ]]; 
   then docker build app -t $APP
 fi
 
